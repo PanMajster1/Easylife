@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldTrack | Easylife</title>
+    <style>
+        /* --- STYLIZACJA (Dark Mode a la Apple) --- */
+        body { background-color: #000000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: white; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* Grid i Karty */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background-color: #1C1C1E; border: 1px solid #2C2C2E; border-radius: 16px; padding: 20px; text-align: center; height: 100px; display: flex; flex-direction: column; justify-content: center; }
+        .card-label { color: #8E8E93; font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+        .card-value { color: #FFFFFF; font-size: 26px; font-weight: 700; }
+        .card-delta { font-size: 12px; margin-top: 5px; color: #8E8E93; }
+        
+        /* Kolory pomocnicze */
+        .text-green { color: #30d158 !important; }
+        .text-red { color: #ff453a !important; }
+        
+        /* Box Rekomendacji */
+        .rec-box { padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; border: 1px solid #333; transition: 0.3s; }
+        .rec-buy { background-color: rgba(48, 209, 88, 0.15); color: #30d158; border-color: #30d158; }
+        .rec-wait { background-color: rgba(255, 69, 58, 0.15); color: #ff453a; border-color: #ff453a; }
+        .rec-neutral { background-color: rgba(255, 159, 10, 0.15); color: #ff9f0a; border-color: #ff9f0a; }
+
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; background: #1C1C1E; border-radius: 12px; overflow: hidden; margin-top: 20px; }
+        th { text-align: left; color: #8E8E93; padding: 12px; font-size: 12px; border-bottom: 1px solid #2C2C2E; }
+        td { padding: 12px; border-bottom: 1px solid #2C2C2E; font-size: 14px; }
+        tr:last-child td { border-bottom: none; }
+        
+        /* Sidebar / Formularz */
+        .sidebar { background: #1C1C1E; padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #2C2C2E; }
+        input, select { background: #000; border: 1px solid #333; color: white; padding: 10px; border-radius: 8px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        button { background: #0A84FF; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; }
+        button:hover { background: #0077ED; transform: scale(1.01); }
+        .btn-sm { width: auto; padding: 5px 10px; font-size: 12px; background: #333; text-decoration: none; border-radius: 6px; }
+        .btn-sm:hover { background: #444; }
+
+        /* Nagłówek */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #2C2C2E; padding-bottom: 15px; }
+        .nav-link { color: #0A84FF; text-decoration: none; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+        .nav-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h3 style="margin:0"> GoldTrack <span style="font-weight:400; color:#8E8E93; font-size:0.8em">Microservice</span></h3>
+        <a href="http://hub.local" class="nav-link">
+            <span>⬅</span> Wróć do Easylife
+        </a>
+    </div>
+
+    <div class="sidebar">
+        <form action="/add" method="POST" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <select name="typ" style="flex:1; min-width: 100px;">
+                <option value="Sztabka">Sztabka</option>
+                <option value="Moneta">Moneta</option>
+            </select>
+            <input type="text" name="prod" value="Mennica Polska" placeholder="Producent" style="flex:1; min-width: 120px;">
+            <input type="number" step="0.01" name="waga" placeholder="Waga (g)" required style="flex:1; min-width: 80px;">
+            <input type="number" step="1" name="cena" placeholder="Cena zakupu (PLN)" required style="flex:1; min-width: 100px;">
+            <button type="submit" style="flex:1; min-width: 100px;">Dodaj +</button>
+        </form>
+    </div>
+
+    <div style="height: 350px; margin-bottom: 20px; border-radius: 16px; overflow: hidden; border: 1px solid #2C2C2E;">
+        <div class="tradingview-widget-container" style="height:100%;width:100%">
+            <div id="tradingview_chart" style="height:100%;width:100%"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+            <script type="text/javascript">
+            new TradingView.widget({
+            "autosize": true, "symbol": "OANDA:XAUUSD", "interval": "D", "timezone": "Europe/Warsaw",
+            "theme": "dark", "style": "1", "locale": "pl", "enable_publishing": false,
+            "hide_top_toolbar": true, "allow_symbol_change": true, "container_id": "tradingview_chart"
+            });
+            </script>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-label">USD (NBP)</div>
+            <div class="card-value"><span id="usd_nbp">--</span> zł</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Giełda ($)</div>
+            <div class="card-value" id="gold_usd">--</div>
+            <div class="card-delta" id="time">--:--:--</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Spot (PLN)</div>
+            <div class="card-value"><span id="spot_pln">--</span> zł/g</div>
+        </div>
+        <div class="card">
+            <div class="card-label" id="capital_label">Wycena Portfela</div>
+            <div class="card-value" id="capital_val">--</div>
+            <div class="card-delta" id="capital_delta">Pobieranie...</div>
+        </div>
+    </div>
+
+    <div id="rec_box" class="rec-box rec-neutral">
+        <h3 id="rec_title" style="margin:0;">ANALIZA RYNKU</h3>
+        <small id="rec_desc">Ładowanie danych...</small>
+    </div>
+
+    <h3 style="margin-top: 30px;">Twój Portfel</h3>
+    <table id="portfolio_table">
+        <thead>
+            <tr>
+                <th>Typ</th>
+                <th>Waga</th>
+                <th>Zysk / Strata</th>
+                <th style="text-align: right;">Akcja</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div>
+
+<script>
+    function updateData() {
+        // Fetchuje dane z naszego endpointu Pythonowego /api/data
+        fetch('/api/data')
+            .then(r => r.json())
+            .then(data => {
+                // 1. Aktualizacja kursów
+                document.getElementById('usd_nbp').innerText = data.usd_nbp.toFixed(4);
+                document.getElementById('gold_usd').innerText = data.gold_usd.toFixed(2);
+                document.getElementById('spot_pln').innerText = data.spot_pln;
+                
+                // Czas (jeśli backend nie zwraca, bierzemy z przeglądarki)
+                const now = new Date();
+                document.getElementById('time').innerText = now.toLocaleTimeString();
+
+                // 2. Obsługa Portfela i Zysków
+                const capitalVal = document.getElementById('capital_val');
+                const capitalDelta = document.getElementById('capital_delta');
+                const capitalLabel = document.getElementById('capital_label');
+
+                if (data.total_val > 0) {
+                    capitalLabel.innerText = "TWÓJ KAPITAŁ";
+                    capitalVal.innerText = data.total_val + " PLN";
+                    capitalVal.classList.add('text-green');
+                    
+                    let profitClass = data.total_profit >= 0 ? "text-green" : "text-red";
+                    let sign = data.total_profit >= 0 ? "+" : "";
+                    capitalDelta.innerHTML = `<span class="${profitClass}">${sign}${data.total_profit} PLN (Zysk)</span>`;
+                } else {
+                    capitalLabel.innerText = "Cena Skupu";
+                    capitalVal.innerText = data.mennica_pln + " zł/g";
+                    capitalVal.classList.remove('text-green');
+                    capitalDelta.innerText = "Cena w skupie (Mennica)";
+                }
+
+                // 3. Rekomendacje (Algorytm SMA z Pythona)
+                const recBox = document.getElementById('rec_box');
+                recBox.className = 'rec-box'; // Reset klas
+                
+                if (data.recommendation === 'BUY') {
+                    recBox.classList.add('rec-buy');
+                    document.getElementById('rec_title').innerText = "🟢 KUPUJ (OKAZJA)";
+                    document.getElementById('rec_desc').innerText = "Cena spadła poniżej średniej 50-dniowej";
+                } else if (data.recommendation === 'WAIT') {
+                    recBox.classList.add('rec-wait');
+                    document.getElementById('rec_title').innerText = "🔴 CZEKAJ (DROGO)";
+                    document.getElementById('rec_desc').innerText = "Cena jest wysoko powyżej średniej";
+                } else {
+                    recBox.classList.add('rec-neutral');
+                    document.getElementById('rec_title').innerText = "🟠 NEUTRALNIE";
+                    document.getElementById('rec_desc').innerText = "Rynek stabilny / Brak danych";
+                }
+
+                // 4. Tabela
+                const tbody = document.querySelector('#portfolio_table tbody');
+                tbody.innerHTML = '';
+                
+                if (data.portfolio.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#555; padding: 30px;">Twój sejf jest pusty</td></tr>';
+                } else {
+                    data.portfolio.forEach(item => {
+                        let color = item.zysk >= 0 ? 'text-green' : 'text-red';
+                        let sign = item.zysk >= 0 ? "+" : "";
+                        
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${item.typ}</td>
+                                <td>${item.waga} g</td>
+                                <td class="${color}">${sign}${item.zysk} PLN</td>
+                                <td style="text-align: right;">
+                                    <a href="/delete/${item.id}" class="btn-sm" style="color:#ff453a;">Usuń</a>
+                                </td>
+                            </tr>`;
+                    });
+                }
+            })
+            .catch(err => console.error("Błąd pobierania danych:", err));
+    }
+
+    // Uruchom od razu, potem odświeżaj co 5 sekund (nie co 1s, żeby nie męczyć API)
+    updateData(); 
+    setInterval(updateData, 5000);
+</script>
+
+</body>
+</html>

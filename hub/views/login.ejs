@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Login</title></head>
+<body style="background:#000;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;">
+    <div style="background:#1C1C1E;padding:40px;border-radius:20px;text-align:center;border:1px solid #333;">
+        <h2>Easylife OS</h2>
+        <% if(error){ %><div style="color:red;margin-bottom:10px"><%= error %></div><% } %>
+        <form method="POST">
+            <input name="username" placeholder="Login" style="display:block;margin:10px auto;padding:10px;width:100%">
+            <input type="password" name="password" placeholder="Hasło" style="display:block;margin:10px auto;padding:10px;width:100%">
+            <button style="padding:10px 20px;background:#0A84FF;color:#fff;border:none;border-radius:5px;cursor:pointer;">Zaloguj</button>
+        </form>
+    </div>
+</body>
+</html>

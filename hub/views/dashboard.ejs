@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Dashboard</title></head>
+<body style="background:#000;color:#fff;font-family:sans-serif;padding:40px;">
+    <h1>Witaj, <%= user.username %></h1>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:20px;">
+        <% apps.forEach(app => { %>
+            <a href="<%= app.url %>" target="_blank" style="background:#1C1C1E;padding:20px;border-radius:15px;text-decoration:none;color:#fff;text-align:center;border:1px solid #333;display:block;">
+                <div style="font-size:30px">📦</div>
+                <div style="margin-top:10px;font-weight:bold"><%= app.name %></div>
+            </a>
+        <% }) %>
+    </div>
+</body>
+</html>
